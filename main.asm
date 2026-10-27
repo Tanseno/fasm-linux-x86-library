@@ -6,28 +6,47 @@ section '.data' writable
 msg db "watermelon",0
 msg_l = $ - msg
 msg_2 db "128",0
+_buffer.size equ 32
 
 
 section '.bss' writable
 buffer_char rb 1
+_buffer rb _buffer.size
 
 
 section '.main' executable
 _start:
-	mov rax,msg_2
-	call str_to_int
+	mov rax,msg
+	call lenStr
 	call print_number
-	call print_line
 	call exit
 
 
+section '.lenStr' executable
+lenStr:
+	push rbx
+	push rcx
+	push rdx
+	.iter:
+		cmp [rax + rcx], byte 0
+		je .close
+		inc rcx
+		jmp .iter
+	.close:
+		mov rax,rcx
+		pop rdx
+		pop rcx
+		pop rbx
+		ret
+
 ; INPUT
 ; rax = int
-; OUTPUT
-; rax = str
-; rbx = lenght_str
-section '.int_to_str' executable
+; rbx = buffer
+; rcx = buffer.size
+section '.intToStr' executable
 int_to_str:
+	push rax
+	push rbx
 	push rcx
 	push rdx
 	push rdi
@@ -71,6 +90,8 @@ int_to_str:
 		pop rsi
 		pop rdx
 		pop rcx
+		pop rbx
+		pop rax
 		ret
 
 
@@ -78,7 +99,7 @@ int_to_str:
 ; rax = str
 ; OUTPUT
 ; rax = int
-section '.str_to_int' executable
+section '.strToInt' executable
 str_to_int:
 	push rbx
 	push rcx
@@ -114,7 +135,7 @@ str_to_int:
 
 ; INPUT
 ; rax = int
-section '.print_number' executable
+section '.printNumber' executable
 print_number:
 	push rax
 	push rbx
@@ -149,7 +170,7 @@ print_number:
 ; INPUT
 ; rax = str
 ; rbx = lenght str
-section '.print_string' executable
+section '.printString' executable
 print_string:
 	push rax
 	push rbx
@@ -167,7 +188,7 @@ print_string:
 	ret
 	
 
-section '.print_line' executable
+section '.printLine' executable
 print_line:
 	push rax
 	mov rax,10
@@ -178,7 +199,7 @@ print_line:
 
 ; INPUT
 ; rax = char
-section 'print_char' executable
+section 'printChar' executable
 print_char:
 	push rax
 	push rbx

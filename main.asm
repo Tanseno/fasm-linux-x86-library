@@ -3,6 +3,11 @@ public _start
 
 
 section '.data' writable
+a db "qwerty1",0
+alen = $ - a
+b db "qwerty",0
+blen = $ - b
+
 msg db "watermelon",0
 msg_l = $ - msg
 msg_2 db "128",0
@@ -16,13 +21,60 @@ _buffer rb _buffer.size
 
 section '.main' executable
 _start:
-	mov rax,100
-	mov rbx,_buffer
-	mov rcx,_buffer.size
-	call numToStr
-	call printStr
-	call printLine
+	mov rax,a
+	mov rbx,b
+	call cmpStr
+	mov rax,rcx
+	call printNum
 	call exit
+
+
+; INPUT
+; rax - str
+; rbx - str
+; OUTPUT
+; rcx - num (0/1)
+section '.cmpStr' executable
+cmpStr:
+	push rax
+	push rbx
+	push rdx
+
+	push rax
+	push rbx
+	call lenStr
+	mov rdx,rax
+	mov rax,rbx
+	call lenStr
+	cmp rax,rdx
+	je .yes
+	.no:
+		pop rbx
+		pop rax
+		xor rcx,rcx
+		jmp .close
+	.yes:
+		pop rbx
+		pop rax
+		xor rcx,rcx
+	.iter:
+		movzx r8,byte [rax + rcx]
+		movzx r9,byte [rbx + rcx]
+		cmp r8,r9 
+		je .nextCheck
+	.nextCheck:
+		cmp rcx,rdx
+		je .done
+		inc rcx
+		jmp .iter
+	.done:
+		mov rcx,1
+	.close:
+		pop rdx
+		pop rbx
+		pop rax
+		ret
+
 
 
 ; INPUT

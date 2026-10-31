@@ -3,7 +3,7 @@ public _start
 
 
 section '.data' writable
-a db "qwerty1",0
+a db "qwerty",0
 alen = $ - a
 b db "qwerty",0
 blen = $ - b
@@ -21,11 +21,6 @@ _buffer rb _buffer.size
 
 section '.main' executable
 _start:
-	mov rax,a
-	mov rbx,b
-	call cmpStr
-	mov rax,rcx
-	call printNum
 	call exit
 
 
@@ -39,48 +34,55 @@ cmpStr:
 	push rax
 	push rbx
 	push rdx
+	push r8
+	push r9
 
-	push rax
-	push rbx
-	call lenStr
-	mov rdx,rax
-	mov rax,rbx
-	call lenStr
-	cmp rax,rdx
-	je .yes
-	.no:
-		pop rbx
-		pop rax
-		xor rcx,rcx
-		jmp .close
-	.yes:
-		pop rbx
-		pop rax
-		xor rcx,rcx
+	push rax ; сохраняем строку
+	push rbx ; сохраняем строку
+	call lenStr ; измеряем размер первой строки
+	mov rdx,rax ; сохраняем значение
+	mov rax,rbx ; вторую строку перемещаем в регистр rax
+	call lenStr ; измеряем размер второй строки
+	cmp rax,rdx ; сравниваем размеры
+	je .yes ; если размеры равны то переход в .yes
+	.no: ; если размеры не совпадают то
+		pop rbx ; возвращаем строки в регистры
+		pop rax ; возвращаем строки в регистры
+		xor rcx,rcx ; обнуление счётчика, превращаем в возращаемое значение
+		jmp .close ; завершаем работу функции
+	.yes: ; размеры равны
+		pop rbx ; возвращаем строки в регистры
+		pop rax ; возвращаем строки в регистры
+		xor rcx,rcx ; обнуление счётчика
 	.iter:
-		movzx r8,byte [rax + rcx]
-		movzx r9,byte [rbx + rcx]
-		cmp r8,r9 
-		je .nextCheck
-	.nextCheck:
-		cmp rcx,rdx
-		je .done
-		inc rcx
-		jmp .iter
-	.done:
-		mov rcx,1
+		movzx r8,byte [rax + rcx] ; перемещение символов первой строки в регистр r8
+		movzx r9,byte [rbx + rcx] ; перемещение символов второй строки в регистр r9
+		cmp r8,r9 ; сравнение символов
+		je .nextCheck ; если символы равны, то переход в .nextCheck
+		jne .notEqual ; если символы не равны, то переход в .notEqual
+	.nextCheck: ; 
+		cmp rcx,rdx ; сравнение счётчика и размера строки
+		je .done ; если дошли до конца с строки, то перемещение в .done
+		inc rcx ; rcx++
+		jmp .iter ; возвращаемся к .iter
+	.notEqual: ; строки не одинаковые
+		xor rcx,rcx ; обнуление счётчика, превращаем в возращаемое значение
+		jmp .close ; завершаем работу функции
+	.done: ; строки одиннаковые
+		mov rcx,1 ; Возвращаем true если строки равны
 	.close:
+		pop r9
+		pop r8
 		pop rdx
 		pop rbx
 		pop rax
 		ret
 
 
-
 ; INPUT
 ; rax = str
 ; OUTPUT
-; rax = num
+; rax = unsigned number
 section '.lenStr' executable
 lenStr:
 	push rbx
@@ -101,14 +103,14 @@ lenStr:
 
 
 ; INPUT
-; rax = num
+; rax = unsigned number
 ; rbx = buffer
 ; rcx = buffer.size
 ; OUTPUT
 ; rax = buffer
 ; rbx = buffer.size
-section '.numToStr' executable
-numToStr:
+section '.uNumToStr' executable
+uNumToStr:
 	push rcx
 	push rdx
 	push rdi
@@ -149,8 +151,8 @@ numToStr:
 		mov rsi,rdx ; помещаем из rsi = rdx
 	.close:
 		mov [rbx + rsi],byte 0 ; перемещаем нулевой терминатор в конце строки
-		mov rax,_buffer
-		mov rbx,_buffer.size
+		mov rax,rbx
+        mov rbx,rsi
 		pop rsi
 		pop rdx
 		pop rcx
@@ -160,9 +162,9 @@ numToStr:
 ; INPUT
 ; rax = str
 ; OUTPUT
-; rax = num
-section '.strToNum' executable
-strToNum:
+; rax = unsigned number
+section '.strToUNum' executable
+strToUNum:
 	push rbx
 	push rcx
 	push rdx
@@ -196,9 +198,9 @@ strToNum:
 
 
 ; INPUT
-; rax = num
-section '.printNum' executable
-printNum:
+; rax = unsigned number
+section '.printUNum' executable
+printUNum:
 	push rax
 	push rbx
 	push rcx

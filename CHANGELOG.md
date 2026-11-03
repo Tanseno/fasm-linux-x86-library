@@ -65,3 +65,25 @@
 
 ### Security
 - Ничего
+
+
+
+
+
+## [02.11.2026]
+
+### Added
+- Созданы библиотеки sys.asm, str.asm, math.asm
+- Добавлены новые функции fibonachi, factorail, gCD
+
+### Changed
+- Функции были распределены по созданым библиотекам sys.asm, str.asm, math.asm
+
+### Fixed
+- Было исправлено в функции uNumToStr, то что в стэк теперь отправляется rsi, а не rdi
+
+### Removed
+- Ничего
+
+### Security
+- Ничего

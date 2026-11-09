@@ -7,9 +7,10 @@ public printChar
 public printLine
 public printStr
 public printUNum
+public printNum
 
 
-section '.bss' executable
+section '.bss' writeable
 bufferChar rb 1
 
 
@@ -51,36 +52,6 @@ printUNum:
 		pop rcx
 		pop rbx
 		pop rax
-		retsection '.printUNum' executable
-printUNum:
-	push rax
-	push rbx
-	push rcx
-	push rdx
-	xor rcx,rcx ; обнуляем счётчик
-	.iter:
-		xor rdx,rdx ; обнуляем остаток от деления
-		mov rbx,10 ; помещаем в rbx число 10
-		div rbx ; rax / rbx
-		add rdx,'0' ; прибавляем к rdx числовое значение ASCII символа '0'
-		push rdx ; помещаем в стэк
-		inc rcx ; прибавляем к rcx +1
-		cmp rax,0 ; сравниваем rax с 0
-		je .print_iter ; переход к .print_iter, если rax == 0
-		jmp .iter ; возвращаемся к .iter
-	.print_iter:
-		cmp rcx,0 ; сравниваем rcx с 0
-		je .close ; если rcx == 0, переходим в .close
-		dec rcx ; rcx--
-		pop rax ; вытаскиваем из стэка, задом наперёд рание помещённые значения регистра rdx, в регистр rax, для последующего вывода в консоль
-		call printChar ; вызов функции вывода символа в консоль
-		jmp .print_iter ; возвращаемся к .print_iter
-	.close: ; завершение фунцкии
-		pop rdx
-		pop rcx
-		pop rbx
-		pop rax
-		ret
 
 
 ; INPUT
@@ -144,3 +115,46 @@ printChar:
 	pop rbx
 	pop rax
 	ret ; возвращаемся туда, откуда вызвали
+
+
+; INPUT
+; rax = signed number
+section '.printNum' executable
+printNum:
+	push rax
+	push rbx
+	push rcx
+	push rdx
+	xor rcx,rcx ; обнуляем счётчик
+	cmp rax,0
+	jl .minus
+	jmp .iter
+	.minus:
+		neg rax
+		push rax
+		mov rax,'-'
+		call printChar
+		pop rax
+	.iter:
+		xor rdx,rdx ; обнуляем остаток от деления
+		mov rbx,10 ; помещаем в rbx число 10
+		div rbx ; rax / rbx
+		add rdx,'0' ; прибавляем к rdx числовое значение ASCII символа '0'
+		push rdx ; помещаем в стэк
+		inc rcx ; прибавляем к rcx +1
+		cmp rax,0 ; сравниваем rax с 0
+		je .print_iter ; переход к .print_iter, если rax == 0
+		jmp .iter ; возвращаемся к .iter
+	.print_iter:
+		cmp rcx,0 ; сравниваем rcx с 0
+		je .close ; если rcx == 0, переходим в .close
+		dec rcx ; rcx--
+		pop rax ; вытаскиваем из стэка, задом наперёд рание помещённые значения регистра rdx, в регистр rax, для последующего вывода в консоль
+		call printChar ; вызов функции вывода символа в консоль
+		jmp .print_iter ; возвращаемся к .print_iter
+	.close: ; завершение фунцкии
+		pop rdx
+		pop rcx
+		pop rbx
+		pop rax
+		ret
